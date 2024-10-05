@@ -20,3 +20,20 @@ class DoctorAccount(models.Model):
     def __str__(self):
         return self.user.username
 
+class Appointment(models.Model):
+    patient = models.ForeignKey(PatientAccount, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(DoctorAccount, on_delete=models.CASCADE)
+    appointment_date = models.DateField()
+    appointment_time = models.TimeField()
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    STATUS_CHOICES = [
+        ('Scheduled', 'Scheduled'),
+        ('Completed', 'Completed'),
+        ('Cancelled', 'Cancelled'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Scheduled')
+
+    def __str__(self):
+        return f"Appointment {self.id} - {self.patient} with {self.doctor} on {self.appointment_date} at {self.appointment_time}"

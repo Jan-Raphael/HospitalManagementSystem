@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import PatientSignupForm, DoctorSignupForm, PatientLoginForm, DoctorLoginForm
+from .forms import PatientSignupForm, DoctorSignupForm, PatientLoginForm, DoctorLoginForm, AppointmentForm
 from .models import PatientAccount, DoctorAccount
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
@@ -47,7 +47,7 @@ def patient_signup(request):
             patient.user = user
             patient.save()
             login(request, user)
-            return redirect('home')  # Change to an appropriate page
+            return redirect('patient_dashboard')  # Change to an appropriate page
     else:
         user_form = UserCreationForm()
         patient_form = PatientSignupForm()
@@ -121,10 +121,24 @@ def doctor_login(request):
         form = DoctorLoginForm()
 
     return render(request, 'AccountView/doctor_login.html', {'form': form})
-def book_appointment_or_signup(request):
-    if request.user.is_authenticated:
 
-        return redirect('appointment_page')
+@login_required
+@user_passes_test(is_patient)
+def book_appointment(request):
+    if request.method == 'POST':
+        form = AppointmentForm(request.POST)
+        if form.is_valid():
+            appointment = form.save(commit=False)
+            appointment.patient = PatientAccount.objects.get(user=request.user)
+            appointment.save()
+            return redirect('patient_dashboard')  # Redirect to patient dashboard
     else:
+        form = AppointmentForm()
+    return render(request, 'PatientViews/book_appoinment.html', {'form': form})
 
+@login_required
+def appointment_page(request):
+    if request.user.is_authenticated:
+        return redirect('book_appointment')
+    else:
         return redirect('patient_signup')

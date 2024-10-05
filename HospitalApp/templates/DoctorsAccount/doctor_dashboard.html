@@ -5,39 +5,170 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doctor Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f7f6;
+        }
+        .navbar {
+            background-color: #004d80;
+        }
+        .navbar a {
+            color: #fff !important;
+        }
+        .container {
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        h2, h3 {
+            color: #004d80;
+        }
+        table {
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+        }
+        table th, table td {
+            text-align: center;
+            vertical-align: middle !important;
+        }
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+        .btn-custom {
+            background-color: #004d80;
+            color: #fff;
+        }
+        .btn-custom:hover {
+            background-color: #003366;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg">
         <a class="navbar-brand" href="#">Evergreen General Hospital</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'doctor_dashboard' %}">Dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout_view' %}">Logout</a>
-                </li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'doctor_dashboard' %}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Logout</a></li>
             </ul>
         </div>
     </nav>
-    
-    <div class="container mt-5">
+
+    <!-- Dashboard Content -->
+    <div class="container">
         <h2>Welcome, Dr. {{ doctor_profile.user.username }}</h2>
-        <p>Your specialty: {{ doctor_profile.specialty }}</p>
-        <p>Your contact information: {{ doctor_profile.contact_info }}</p>
-        
-        <!-- Add more sections as needed -->
-        
-        <div class="mt-4">
+        <p>Your Specialty: <strong>{{ doctor_profile.specialty }}</strong></p>
+        <p>Your Contact Information: <strong>{{ doctor_profile.user.email }}</strong></p>
+
+        <!-- Manage Appointments -->
+        <div class="mt-5">
             <h3>Manage Appointments</h3>
-            <p>Here you can manage your appointments, view patient records, and more.</p>
-            <!-- Add links or forms for managing appointments -->
+            <a href="{}" class="btn btn-custom mb-3">Schedule New Appointment</a>
+            <table class="table table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Patient</th>
+                        <th>Date & Time</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                    <tr>
+                        <td>{{ appointment.patient.user.username }}</td>
+                        <td>{{ appointment.appointment_date }} at {{ appointment.appointment_time }}</td>
+                        <td>{{ appointment.status }}</td>
+                        <td>
+                            <a href="{% url 'view_appointment' appointment.id %}" class="btn btn-info btn-sm">View</a>
+                            <a href="{% url 'edit_appointment' appointment.id %}" class="btn btn-warning btn-sm">Edit</a>
+                            <a href="{% url 'cancel_appointment' appointment.id %}" class="btn btn-danger btn-sm">Cancel</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No appointments found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Manage Patients -->
+        <div class="mt-5">
+            <h3>Manage Patients</h3>
+            <a href="{}" class="btn btn-custom mb-3">Add New Patient</a>
+            <table class="table table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone Number</th>
+                        <th>Address</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients %}
+                    <tr>
+                        <td>{{ patient.user.username }}</td>
+                        <td>{{ patient.phone_number }}</td>
+                        <td>{{ patient.address }}</td>
+                        <td>
+                            <a href="{% url 'view_patient' patient.id %}" class="btn btn-info btn-sm">View</a>
+                            <a href="{% url 'edit_patient' patient.id %}" class="btn btn-warning btn-sm">Edit</a>
+                            <a href="{% url 'delete_patient' patient.id %}" class="btn btn-danger btn-sm">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No patients found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Messages Section -->
+        <div class="mt-5">
+            <h3>Messages</h3>
+            <a href="{}" class="btn btn-custom mb-3">Compose New Message</a>
+            <ul class="list-group">
+                {% for message in messages %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>From:</strong> {{ message.sender.username }}<br>
+                        <strong>Subject:</strong> {{ message.subject }}<br>
+                        <small>{{ message.timestamp }}</small>
+                    </div>
+                    <a href="{% url 'view_message' message.id %}" class="btn btn-info btn-sm">View</a>
+                </li>
+                {% empty %}
+                <li class="list-group-item">No messages found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Notifications (Optional) -->
+        <div class="mt-5">
+            <h3>Notifications</h3>
+            <ul class="list-group">
+                {% for notification in notifications.list %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ notification.message }}
+                    <a href="{{ notification.link }}" class="btn btn-primary btn-sm">View</a>
+                </li>
+                {% empty %}
+                <li class="list-group-item">No new notifications.</li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
 
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

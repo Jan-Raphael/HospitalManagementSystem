@@ -4,27 +4,169 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patient Dashboard</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #eef2f3;
+        }
+        .navbar {
+            background-color: #004d80;
+        }
+        .navbar a {
+            color: #fff !important;
+        }
+        .container {
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        h2, h3 {
+            color: #004d80;
+        }
+        table {
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+        }
+        table th, table td {
+            text-align: center;
+            vertical-align: middle !important;
+        }
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+        .btn-custom {
+            background-color: #004d80;
+            color: #fff;
+        }
+        .btn-custom:hover {
+            background-color: #003366;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Patient Dashboard</h1>
-        <nav>
-            <ul>
-                <li><a href="{% url 'home' %}">Home</a></li>
-                <li><a href="{% url 'logout' %}">Logout</a></li>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="#">Evergreen General Hospital</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'patient_dashboard' %}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Logout</a></li>
             </ul>
-        </nav>
-    </header>
-    <main>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="container">
         <h2>Welcome, {{ user.patientaccount.user.username }}!</h2>
-        <p>Phone number: {{ user.patientaccount.phone_number }}</p>
-        <p>Address: {{ user.patientaccount.address }}</p>
-        
-        <!-- Add more content or functionality for patients here -->
-    </main>
-    <footer>
-        <p>&copy; 2024 Hospital Management System</p>
-    </footer>
-</body>
-</html>
+        <p><strong>Phone Number:</strong> {{ user.patientaccount.phone_number }}</p>
+        <p><strong>Address:</strong> {{ user.patientaccount.address }}</p>
+
+        <!-- Manage Appointments -->
+        <div class="mt-5">
+            <h3>Your Appointments</h3>
+            <a href="{% url 'book_appointment_or_signup' %}" class="btn btn-custom mb-3">Book New Appointment</a>
+            <table class="table table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Doctor</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                    <tr>
+                        <td>{{ appointment.doctor.user.username }}</td>
+                        <td>{{ appointment.appointment_date }}</td>
+                        <td>{{ appointment.appointment_time }}</td>
+                        <td>{{ appointment.description|default:"N/A" }}</td>
+                        <td>{{ appointment.status }}</td>
+                        <td>
+                            <a href="{% url 'view_appointment' appointment.id %}" class="btn btn-info btn-sm">View</a>
+                            {% if appointment.status == 'Scheduled' %}
+                                <a href="{% url 'cancel_appointment' appointment.id %}" class="btn btn-danger btn-sm">Cancel</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">You have no appointments scheduled.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Profile Management -->
+        <div class="mt-5">
+            <h3>Your Profile</h3>
+            <a href="{}" class="btn btn-custom mb-3">Edit Profile</a>
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <th>Username</th>
+                        <td>{{ user.username }}</td>
+                    </tr>
+                    <tr>
+                        <th>Email</th>
+                        <td>{{ user.email }}</td>
+                    </tr>
+                    <tr>
+                        <th>Phone Number</th>
+                        <td>{{ user.patientaccount.phone_number }}</td>
+                    </tr>
+                    <tr>
+                        <th>Address</th>
+                        <td>{{ user.patientaccount.address }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Messages Section -->
+        <div class="mt-5">
+            <h3>Messages</h3>
+            <a href="{}" class="btn btn-custom mb-3">Send New Message</a>
+            <ul class="list-group">
+                {% for message in messages %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>From:</strong> {{ message.sender.username }}<br>
+                        <strong>Subject:</strong> {{ message.subject }}<br>
+                        <small>{{ message.timestamp }}</small>
+                    </div>
+                    <a href="{% url 'view_message' message.id %}" class="btn btn-info btn-sm">View</a>
+                </li>
+                {% empty %}
+                <li class="list-group-item">No messages found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Notifications (Optional) -->
+        <div class="mt-5">
+            <h3>Notifications</h3>
+            <ul class="list-group">
+                {% for notification in notifications.list %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ notification.message }}
+                    <a href="{{ notification.link }}" class="btn btn-primary btn-sm">View</a>
+                </li>
+                {% empty %}
+                <li class="list-group-item">No new notifications.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer text-center">
+        <p>&copy; 2024 Evergreen General Hospital. All Rights Res
+        </p></div>
